@@ -1,10 +1,17 @@
 # Unity/Github/S3 Deployment setup
 
-This repo contains scripts meant to assist in setting up a new Unity project for automatic building and deployment to S3.
+This repo contains scripts meant to assist in setting up a new Unity project for automatic building and deployment to S3. You do NOT need to clone this repo onto your computer, it's just here for reference and to allow my scripts to work.
 
 ## Initial Setup (per-machine)
 
-You only need to run this on your computer once. Ensure you have `git`, `brew`, `git-lfs`, and `gh` installed.
+You only need do this on your computer once, and then you can forget it for the most part. You'll be installing the following tools
+
+- `git`: Basic command-line tool that handles version-control
+- `brew`: Mac package manager, we'll just be using it to install the following tools.
+- `git-lfs`: An extension to `git` that handles large non-text files (images, sounds, etc.). Very common for Unity projects.
+- `gh`: The commmand-line tool for Github. It basically just duplicates all the functionality of the github website, but allows me to easily do that via scripts I've written to keep things simpler.
+
+Follow the instructions below to install these tools. You'll enter all of these commands in the Mac `Terminal` app.
 
 ### Confirming that you have `git` installed
 
@@ -18,7 +25,7 @@ If it's not installed, you should be prompted to install it. Follow the prompts,
 
 ### Installing `brew`
 
-To check if you have `brew` installed, open `Terminal`, and type:
+To check if you have `brew` installed, run this command:
 
 ```
 which brew
