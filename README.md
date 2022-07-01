@@ -9,14 +9,25 @@ You only need to run this on your computer once. Ensure you have `git`, `git-lfs
 ```
 brew update
 brew install git git-lfs gh
+git lfs install
 ```
+
+You will then want to authenticate with the Github CLI:
+
+```
+gh auth login
+```
+
+When prompted to select between `https` and `ssh`, select `ssh`.
 
 ## Repo Setup
 
 You'll want to run this right after creating your Unity project (or anytime before committing it to Github).
 
 ```
+
 curl setup-unity-project-for-ci.sh | bash
+
 ```
 
 This script does the following for you:
@@ -27,3 +38,7 @@ This script does the following for you:
 
 - Unity License Activation
 - Build/Deploy
+
+```
+
+```
