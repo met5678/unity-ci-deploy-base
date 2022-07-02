@@ -33,7 +33,7 @@ which brew
 
 If it outputs a file path, you're good, continue to the next section.
 
-If it says `brew not found`, install `brew` by copying this into your terminal:
+If it shows nothing, or says `brew not found`, install `brew` by copying this into your terminal:
 
 ```
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -69,7 +69,12 @@ Once it's done, run:
 gh auth login
 ```
 
-Follow the prompts. When prompted to select between `https` and `ssh`, select `ssh`.
+Follow the prompts. Recommended choices:
+
+- `github.com` (not `github enterprise`)
+- `ssh` (not `https`)
+- Generate SSH key for me, no passphrase (it's just easier to deal with)
+- Login with browser
 
 ## Repo Setup
 
