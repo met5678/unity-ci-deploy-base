@@ -82,7 +82,7 @@ You'll want to run this right after creating your Unity project (or anytime befo
 
 ```
 
-curl setup-unity-project-for-ci.sh | bash
+curl https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/scripts/setup-unity-project.sh | bash
 
 ```
 
@@ -94,7 +94,3 @@ This script does the following for you:
 
 - Unity License Activation
 - Build/Deploy
-
-```
-
-```

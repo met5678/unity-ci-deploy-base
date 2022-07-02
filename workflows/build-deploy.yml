@@ -41,14 +41,6 @@ jobs:
           restore-keys: |
             Library-
 
-      # Test
-      # - name: Run tests
-      #   uses: game-ci/unity-test-runner@v2
-      #   env:
-      #     UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-      #   with:
-      #     githubToken: ${{ secrets.GITHUB_TOKEN }}
-
       # Build
       - name: Build project
         uses: game-ci/unity-builder@v2
@@ -62,7 +54,7 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: 'The project `{{ EVENT_PAYLOAD.repository.full_name }}` has been successfully built for WebGL'
+          args: 'WebGL build of `${{ github.repository }}` successful, deploying...'
 
       # Output
       - uses: actions/upload-artifact@v2
@@ -77,14 +69,14 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
           AWS_REGION: ${{ secrets.S3_BUCKET_REGION }}
         run: |
-          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }} --recursive --exclude "*.br"
-          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }} --recursive --exclude "*" --include "*.br" --exclude "*.wasm.br" --content-type binary/octet-stream --content-encoding br
-          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }} --recursive --exclude "*" --include "*.wasm.br" --content-type application/wasm --content-encoding br
-          aws cloudfront create-invalidation --distribution-id E3IJL1XZ6KZMG2 --paths "/*"
+          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }} --recursive --exclude "*.br"
+          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }} --recursive --exclude "*" --include "*.br" --exclude "*.wasm.br" --content-type binary/octet-stream --content-encoding br
+          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }} --recursive --exclude "*" --include "*.wasm.br" --content-type application/wasm --content-encoding br
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/${{ github.repository }}/*"
 
       - name: Discord Deploy Notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: 'The project `{{ EVENT_PAYLOAD.repository.full_name }}` has been deployed to s3: https://d28g9u00nypb4u.cloudfront.net'
+          args: 'Deployed WebGL build of `${{ github.repository }}` at: https://${{ secrets.CLOUDFRONT_URL }}/${{ github.repository }}'
