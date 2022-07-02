@@ -3,3 +3,8 @@ curl https://gist.githubusercontent.com/webbertakken/ff250a0d5e59a8aae961c2e509c
 mkdir -p .github/workflows
 curl https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/workflows/activation.yml > .github/workflows/activation.yml
 curl https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/workflows/build-deploy.yml > .github/workflows/build-deploy.yml
+git stash
+git add .gitignore .gitattributes .github/workflows
+git commit -m "Setting up unity project with CI"
+git push
+git stash apply
