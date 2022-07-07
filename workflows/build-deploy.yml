@@ -66,7 +66,7 @@ jobs:
       - name: S3 Deploy
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.S3_BUCKET_REGION }}
         run: |
           aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }} --recursive --exclude "*.br"
@@ -79,4 +79,4 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: 'Deployed WebGL build of `${{ github.repository }}` at: https://${{ secrets.CLOUDFRONT_URL }}/${{ github.repository }}'
+          args: 'Deployed WebGL build of `${{ github.repository }}` at: ${{ secrets.CLOUDFRONT_URL }}/${{ github.repository }}/index.html'

@@ -11,8 +11,8 @@ create_gh_repo () {
   fi
 
   if [[ $VISIBILITY == "public" ]]; then
-    echo "gh repo create $REPO --push --public"
+    gh repo create $REPO --source=. --public
   else
-    echo "gh repo create $REPO --push --private"
+    gh repo create $REPO --source=. --private
   fi
 }

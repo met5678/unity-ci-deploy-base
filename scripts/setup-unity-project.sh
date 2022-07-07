@@ -32,6 +32,9 @@ git commit -m "Setting up unity project with CI"
 
 git stash apply
 
+git add .
+git commit -m "Initial commit for Unity project files"
+
 if is_gh_repo; then
   echo "This repo is already on Github"
 else
@@ -58,13 +61,13 @@ else
     fi
   done
 
-  create_repo $REPO_VISIBILITY $REPO_LOCATION
+  create_gh_repo $REPO_VISIBILITY $REPO_LOCATION
 fi
 
 while true; do
     read -p "Push these changes to github? (y/n) " yn
     case $yn in
-        [Yy]* ) git push; break;;
+        [Yy]* ) git push --set-upstream origin $(git rev-parse --abbrev-ref HEAD); break;;
         [Nn]* ) exit;;
         * ) echo "Please answer yes or no.";;
     esac
