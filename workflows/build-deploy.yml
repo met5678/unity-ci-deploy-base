@@ -54,7 +54,7 @@ jobs:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: 'WebGL build of `${{ github.repository }}` successful, deploying...'
+          args: 'Successfully built `${{ github.repository }}` for WebGL, deploying...'
 
       # Output
       - uses: actions/upload-artifact@v2

@@ -94,3 +94,50 @@ This script does the following for you:
 
 - Unity License Activation
 - Build/Deploy
+
+## Dev Notes
+
+### Setup script pseudocode
+
+```
+create_repo
+  Part of roo-makes org?
+    true
+      Public?
+        true
+          gh repo create --public
+        false
+          gh repo create --private
+    false
+      gh repo create
+
+set_secrets
+  prompt for AWS_ACCESS_KEY_ID
+  prompt for AWS_SECRET_ACCESS_KEY
+  prompt for S3_BUCKET (default unity-ci-test-builds)
+  prompt for DISCORD_WEBHOOK
+
+Test if in git repo
+  true
+    cd into root
+    test if contains Unity folders
+      true
+        continue
+      false
+        print error, exit
+  false
+    test if contains Unity folders
+      true
+        git init
+        create_repo
+      false
+        print error, exit
+
+
+if not in roo_makes, or if private
+  set_secrets
+
+Copy .gitignore via curl
+Copy .gitattributes via curl
+Copy workflows via curl
+```

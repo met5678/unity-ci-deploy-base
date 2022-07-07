@@ -1,3 +1,72 @@
+#!/bin/sh
+
+
+create_gh_repo () {
+  DIRNAME=${PWD##*/}
+  VISIBILITY=${1:-"public"}
+  ORG=${2:-"personal"}
+
+  REPO="$DIRNAME"
+
+  # if [[ -z $ORG ]]; then
+  if [[ $ORG != "personal" ]]; then
+    REPO="$ORG/$REPO"
+  fi
+
+  if [[ $VISIBILITY == "public" ]]; then
+    echo "gh repo create $REPO --push --public"
+  else
+    echo "gh repo create $REPO --push --private"
+  fi
+}
+
+
+goto_repo_root() {
+  cd $(git rev-parse --show-toplevel)
+}
+
+
+invalidate_cloudfront_for_bucket() {
+  BUCKET=$1
+  PATHS=/${2:-*}
+
+  if [[ -z $BUCKET ]]; then
+    echo "Error: No bucket specified to invalidate"
+    return 1
+  fi
+
+  NUM_DISTROS=0
+
+  for id in $(aws cloudfront list-distributions --query "DistributionList.Items[*].{id:Id,origin:Origins.Items[0].DomainName}[?starts_with(origin,'$BUCKET.s3.')].id" --output text);
+  do
+    echo "Invalidating \"$PATHS\" on Cloudfront Distribution: $id"
+    INVAL_ID=$(aws cloudfront create-invalidation --distribution-id $id --paths "$PATHS" --query "Invalidation.Id" --output text)
+    echo "Invalidation accepted: $INVAL_ID"
+    ((NUM_DISTROS++))
+  done
+
+  echo "Invalidated $NUM_DISTROS distributions"
+}
+
+
+is_gh_repo() {
+  git remote get-url origin 2>/dev/null | grep git@github.com 1>/dev/null
+}
+
+
+
+is_git_repo() {
+  [[ $(git rev-parse --is-inside-work-tree 2>/dev/null) = "true" ]]
+}
+
+
+
+is_unity_project() {
+  [[ -d "Assets" && -d "ProjectSettings" ]]
+}
+
+
+
 if is_git_repo; then
   goto_repo_root
 fi
