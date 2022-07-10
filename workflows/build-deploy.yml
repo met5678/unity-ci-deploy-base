@@ -1,6 +1,6 @@
 name: Build & Deploy Unity Project
 
-on: [push, pull_request]
+on: push
 
 jobs:
   build:
@@ -10,6 +10,7 @@ jobs:
       - name: Discord Commit Notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
 
       # Checkout (without LFS)
@@ -41,6 +42,14 @@ jobs:
           restore-keys: |
             Library-
 
+      - name: Discord Pre-build Notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
+        uses: Ilshidur/action-discord@0.3.2
+        with:
+          args: 'Starting WebGL build of `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`'
+
       # Build
       - name: Build project
         uses: game-ci/unity-builder@v2
@@ -52,6 +61,7 @@ jobs:
       - name: Discord Build Notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
           args: 'Successfully built `${{ github.repository }}` for WebGL, deploying...'
@@ -69,14 +79,15 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.S3_BUCKET_REGION }}
         run: |
-          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }} --recursive --exclude "*.br"
-          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }} --recursive --exclude "*" --include "*.br" --exclude "*.wasm.br" --content-type binary/octet-stream --content-encoding br
-          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }} --recursive --exclude "*" --include "*.wasm.br" --content-type application/wasm --content-encoding br
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/${{ github.repository }}/*"
+          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }} --recursive --exclude "*.br"
+          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }} --recursive --exclude "*" --include "*.br" --exclude "*.wasm.br" --content-type binary/octet-stream --content-encoding br
+          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }} --recursive --exclude "*" --include "*.wasm.br" --content-type application/wasm --content-encoding br
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }}/*"
 
       - name: Discord Deploy Notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: 'Deployed WebGL build of `${{ github.repository }}` at: ${{ secrets.CLOUDFRONT_URL }}/${{ github.repository }}/index.html'
+          args: 'Deployed WebGL build of `${{ github.repository }}` at: ${{ secrets.CLOUDFRONT_URL }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }}/index.html'
