@@ -112,7 +112,7 @@ jobs:
       - name: Discord Deploy Failure Notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
+        if: ${{ failure() && env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
           args: '❗️ Failed to deploy build of `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`'
