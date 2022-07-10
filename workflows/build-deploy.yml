@@ -19,7 +19,7 @@ jobs:
         if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: '💬 Starting CI workflow for ${{ github.repository }} on ${{ github.ref_type }}: `${{ github.ref_name }}`. See progress at https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}'
+          args: '💬 Starting CI workflow for `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`. See progress at https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}'
 
       # Checkout (without LFS)
       - name: Checkout repository
@@ -73,7 +73,7 @@ jobs:
         if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: '✅ Successfully built `${{ github.repository }}` for WebGL, deploying...'
+          args: '✅ Successfully built `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}` for WebGL, deploying...'
 
       - name: Discord Build Failure Notification
         env:
@@ -115,4 +115,4 @@ jobs:
         if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: '❗️ Failed to deploy build of `${{ github.repository }}`'
+          args: '❗️ Failed to deploy build of `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`'
