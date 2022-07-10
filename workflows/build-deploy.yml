@@ -13,6 +13,13 @@ jobs:
         if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
 
+      - name: Discord Workflow Start Notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
+        uses: Ilshidur/action-discord@0.3.2
+        args: '💬 Starting CI workflow for ${{ github.repository }} on ${{ github.ref_type }}: `${{ github.ref_name }}`. See progress at https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}'
+
       # Checkout (without LFS)
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -48,10 +55,11 @@ jobs:
         if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: 'Starting WebGL build of `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`'
+          args: '🔧 Starting WebGL build of `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`'
 
       # Build
       - name: Build project
+        id: build
         uses: game-ci/unity-builder@v2
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -64,7 +72,15 @@ jobs:
         if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: 'Successfully built `${{ github.repository }}` for WebGL, deploying...'
+          args: '✅ Successfully built `${{ github.repository }}` for WebGL, deploying...'
+
+      - name: Discord Build Failure Notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        if: ${{ failure() && env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
+        uses: Ilshidur/action-discord@0.3.2
+        with:
+          args: '❗️ Build failed for `${{ gitub.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`. See https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} for details.'
 
       # Output
       - uses: actions/upload-artifact@v2
@@ -90,4 +106,12 @@ jobs:
         if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: 'Deployed WebGL build of `${{ github.repository }}` at: ${{ secrets.CLOUDFRONT_URL }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }}/index.html'
+          args: '✅ Deployed WebGL build of `${{ github.repository }}` at: ${{ secrets.CLOUDFRONT_URL }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }}/index.html'
+
+      - name: Discord Deploy Failure Notification
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
+        uses: Ilshidur/action-discord@0.3.2
+        with:
+          args: '❗️ Failed to deploy build of `${{ github.repository }}`. See https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} for details.'
