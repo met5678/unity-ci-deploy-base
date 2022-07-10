@@ -82,18 +82,23 @@ You'll want to run this right after creating your Unity project (or anytime befo
 
 ```
 
-curl https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/scripts/setup-unity-project.sh | bash
+curl https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/setup-unity-project.sh | bash
 
 ```
 
 This script does the following for you:
 
-1. Adds a [Unity-specific `.gitignore`](https://github.com/github/gitignore/blob/main/Unity.gitignore) to your project.
-2. Sets up `git-lfs` and adds a general-purpose [`.gitattributes`](https://gist.github.com/webbertakken/ff250a0d5e59a8aae961c2e509c07fbc) to your project.
-3. Adds two workflows to `.github/workflows`
+1. Initializes a git repo if there isn't already one there.
+2. Adds a [Unity-specific `.gitignore`](https://github.com/github/gitignore/blob/main/Unity.gitignore) to your project.
+3. Adds a general-purpose [`.gitattributes`](https://gist.github.com/webbertakken/ff250a0d5e59a8aae961c2e509c07fbc) to your project.
+4. Adds two Github action workflows to `.github/workflows`, including the important `build-deploy` workflow.
+5. Checks if this repo has been pushed to `Github` yet. If not, it prompts you asking where you want to put the repo. For now, answer (`1` for both options).
 
-- Unity License Activation
-- Build/Deploy
+### Changing or Disabling Discord notifications
+
+By default, the `build-deploy` action will update Discord if it finds a `DISCORD_WEBHOOK` secret. If you are in an org with this already set (such as `roo-makes`), you don't have to do anything.
+
+If you'd like to disable the Discord notifications, add a `DISCORD_WEBHOOK` secret to your repo and set it to `disabled`.
 
 ## Dev Notes
 
