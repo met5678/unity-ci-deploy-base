@@ -81,9 +81,7 @@ Follow the prompts. Recommended choices:
 You'll want to run this right after creating your Unity project (or anytime before committing it to Github).
 
 ```
-
-curl https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/setup-unity-project.sh | bash
-
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/setup-unity-project.sh)"
 ```
 
 This script does the following for you:
