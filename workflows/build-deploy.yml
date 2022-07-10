@@ -19,7 +19,7 @@ jobs:
         if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: '💬 Starting CI workflow for ${{ github.repository }} on ${{ github.ref_type }}: `${{ github.ref_name }}`. See progress at https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}'
+          args: '💬 Starting CI workflow for ${{ github.repository }} on ${{ github.ref_type }}: `${{ github.ref_name }}`. See progress at https://github.com/${{github.repository}}/runs/${{github.run_id}}'
 
       # Checkout (without LFS)
       - name: Checkout repository
@@ -81,7 +81,7 @@ jobs:
         if: ${{ failure() && env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: '❗️ Build failed for `${{ gitub.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`. See https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} for details.'
+          args: '❗️ Build failed for `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`'
 
       # Output
       - uses: actions/upload-artifact@v2
@@ -115,4 +115,4 @@ jobs:
         if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: '❗️ Failed to deploy build of `${{ github.repository }}`. See https://github.com/${{github.repository}}/actions/runs/${{github.run_id}} for details.'
+          args: '❗️ Failed to deploy build of `${{ github.repository }}`'
