@@ -92,6 +92,8 @@ This script does the following for you:
 4. Adds two Github action workflows to `.github/workflows`, including the important `build-deploy` workflow.
 5. Checks if this repo has been pushed to `Github` yet. If not, it prompts you asking where you want to put the repo. For now, answer (`1` for both options).
 
+You may re-run this script on a repo without causing issues. This is the best way to update the Github actions if they need to change.
+
 ### Changing or Disabling Discord notifications
 
 By default, the `build-deploy` action will update Discord if it finds a `DISCORD_WEBHOOK` secret. If you are in an org with this already set (such as `roo-makes`), you don't have to do anything.
