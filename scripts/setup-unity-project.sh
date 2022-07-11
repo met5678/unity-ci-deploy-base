@@ -32,7 +32,7 @@ curl -s https://raw.githubusercontent.com/github/gitignore/main/Unity.gitignore 
 echo "Downloading Unity .gitattributes";
 curl -s https://gist.githubusercontent.com/webbertakken/ff250a0d5e59a8aae961c2e509c07fbc/raw/b767c9c8762a2cf4823de43d3ec649379d8ad064/.gitattributes > .gitattributes
 
-if [[ $(git diff .gitignore .gitattributes) ]]; then 
+if [[ $(git status --porcelain .gitignore .gitattributes) ]]; then 
   git add .gitignore .gitattributes 1>/dev/null
   echo "Committing .gitignore, .gitattributes to repo"
   git commit -m "Adding .gitignore, .gitattributes to project" 1>/dev/null
@@ -45,16 +45,16 @@ curl -s https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/wo
 echo "Downloading Github workflow for deploy"
 curl -s https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/workflows/build-deploy.yml > .github/workflows/build-deploy.yml
 
-if [[ $(git diff .github/workflows) ]]; then 
+if [[ $(git status --porcelain .github/workflows) ]]; then 
   git add .github/workflows
   echo "Committing workflows to repo"
-  git commit -m "Setting up unity project with CI"
+  git commit -m "Setting up unity project with CI" 1>/dev/null
   DID_MAKE_CHANGES=true
 fi
 
 if [[ "$IS_NEW_REPO" == "true" ]]; then
   git add .
-  git commit -m "Initial commit for Unity project files"
+  git commit -m "Initial commit for Unity project files" 1>/dev/null
   DID_MAKE_CHANGES=true
 fi
 
