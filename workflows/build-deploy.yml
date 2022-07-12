@@ -96,8 +96,12 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           AWS_REGION: ${{ secrets.S3_BUCKET_REGION }}
         run: |
-          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }} --recursive --exclude "*.br"
-          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }} --recursive --exclude "*" --include "*.br" --exclude "*.wasm.br" --content-type binary/octet-stream --content-encoding br
+          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }} --recursive --exclude "*.br" --exclude "*.gz"
+          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }} --recursive --exclude "*" --include "*.data.gz" --content-type binary/octet-stream --content-encoding gzip 
+          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }} --recursive --exclude "*" --include "*.js.gz" --content-type application/javascript --content-encoding gzip 
+          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }} --recursive --exclude "*" --include "*.wasm.gz" --content-type application/wasm --content-encoding gzip
+          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }} --recursive --exclude "*" --include "*.data.br" --content-type binary/octet-stream --content-encoding br
+          aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }} --recursive --exclude "*" --include "*.js.br" --content-type application/javascript --content-encoding br
           aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }} --recursive --exclude "*" --include "*.wasm.br" --content-type application/wasm --content-encoding br
           aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }}/*"
 
