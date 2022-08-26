@@ -156,6 +156,22 @@ else
   create_gh_repo $REPO_VISIBILITY $REPO_LOCATION
 fi
 
+if [[ "$REPO_VISIBILITY" = "private" || "$REPO_LOCATION" = "personal" ]]; then
+  echo "Because this repo is not a public repo in roo-makes, you'll need to set its secrets."
+  echo "Run \"gh secret set -f [filename]\" with a file that contains the following env vars":
+  echo "AWS_ACCESS_KEY_ID"
+  echo "AWS_SECRET_ACCESS_KEY"
+  echo "CLOUDFRONT_DISTRIBUTION_ID"
+  echo "CLOUDFRONT_URL"
+  echo "DISCORD_WEBHOOK"
+  echo "S3_BUCKET"
+  echo "S3_BUCKET_REGION"
+  echo "UNITY_EMAIL"
+  echo "UNITY_LICENSE"
+  echo "UNITY_PASSWORD"
+  echo "You can also set them individually with \"gh secret set [SECRET NAME] [SECRET VALUE]\""
+fi
+
 if [[ "$DID_MAKE_CHANGES" == "false" && "$IS_NEW_REPO" == "false" ]]; then
   echo "No changes made, exiting."
   exit 0
