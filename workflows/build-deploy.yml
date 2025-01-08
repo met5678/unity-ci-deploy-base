@@ -5,7 +5,15 @@ on: push
 jobs:
   build:
     name: Build my project ✨
-    runs-on: ubuntu-latest
+    runs-on: linux-large
+    strategy:
+      fail-fast: false
+      matrix:
+        targetPlatform:
+          - StandaloneOSX
+          - StandaloneWindows64
+          - StandaloneLinux64
+          - WebGL
     steps:
       - name: Discord Commit Notification
         env:
@@ -19,18 +27,18 @@ jobs:
         if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: '💬 Starting CI workflow for `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`. See progress at https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}'
+          args: "💬 Starting CI workflow for `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`. See progress at https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}"
 
       # Checkout (without LFS)
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       # Git LFS
       - name: Create LFS file list
         run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
 
       - name: Restore LFS cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         id: lfs-cache
         with:
           path: .git/lfs
@@ -43,10 +51,10 @@ jobs:
           git reset --hard
 
       # Cache
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         with:
           path: Library
-          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-${{ matrix.targetPlatform }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-
 
@@ -56,16 +64,21 @@ jobs:
         if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: '🔧 Starting WebGL build of `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`'
+          args: "🔧 Starting `${{ matrix.targetPlatform }}` build of `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`"
 
       # Build
       - name: Build project
         id: build
-        uses: game-ci/unity-builder@v2
+        uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           targetPlatform: WebGL
+
+      - name: Change Permissions (Mac Only)
+        if: ${{ matrix.targetPlatform == 'StandaloneOSX' }}
+        run: |
+          sudo chmod +x build/${{ matrix.targetPlatform }}/StandaloneOSX.app/Contents/MacOS/*
 
       - name: Discord Build Notification
         env:
@@ -73,7 +86,7 @@ jobs:
         if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: '✅ Successfully built `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}` for WebGL, deploying...'
+          args: "✅ Successfully built `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}` for WebGL, deploying..."
 
       - name: Discord Build Failure Notification
         env:
@@ -81,16 +94,17 @@ jobs:
         if: ${{ failure() && env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: '❗️ Build failed for `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`'
+          args: "❗️ Build failed for `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`"
 
       # Output
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
-          name: Build
-          path: build
+          name: Build-${{ matrix.targetPlatform }}
+          path: build/${{ matrix.targetPlatform }}
 
       # Deploy
-      - name: S3 Deploy
+      - name: S3 WebGL Deploy
+        if: ${{ matrix.targetPlatform == 'WebGL' }}
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -105,13 +119,24 @@ jobs:
           aws s3 cp build/WebGL/WebGL s3://${{ secrets.S3_BUCKET }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }} --recursive --exclude "*" --include "*.wasm.br" --content-type application/wasm --content-encoding br
           aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }}/*"
 
+      - name: S3 Executable Deploy
+        if: ${{ matrix.targetPlatform != 'WebGL' }}
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.S3_BUCKET_REGION }}
+        run: |
+          (cd build/${{ matrix.targetPlatform }}/; zip -r ../../unitybuild-${{ matrix.targetPlatform }}.zip . -x \*_DoNotShip/\*;)
+          aws s3 cp unitybuild-${{ matrix.targetPlatform }}.zip s3://${{ secrets.S3_BUCKET }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }}/unitybuild-${{ matrix.targetPlatform }}.zip
+          aws cloudfront create-invalidation --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} --paths "/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }}/unitybuild-${{ matrix.targetPlatform }}.zip"
+
       - name: Discord Deploy Notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: '✅ Deployed WebGL build of `${{ github.repository }}` at: ${{ secrets.CLOUDFRONT_URL }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }}/index.html'
+          args: "🚀 Deployed `${{ github.repository }}` for `${{ matrix.targetPlatform }}` at: ${{ secrets.CLOUDFRONT_URL }}/${{ github.repository }}/${{ github.ref_type }}/${{ github.ref_name }}/${{ matrix.targetPlatform == 'WebGL' && 'index.html' || format('unitybuild-{0}.zip', matrix.targetPlatform) }}"
 
       - name: Discord Deploy Failure Notification
         env:
@@ -119,4 +144,4 @@ jobs:
         if: ${{ failure() && env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
         uses: Ilshidur/action-discord@0.3.2
         with:
-          args: '❗️ Failed to deploy build of `${{ github.repository }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`'
+          args: "❗️ Failed to deploy `${{ github.repository }}` for `${{ matrix.targetPlatform }}` on ${{ github.ref_type }}: `${{ github.ref_name }}`"

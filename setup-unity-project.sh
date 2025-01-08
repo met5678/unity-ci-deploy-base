@@ -67,7 +67,7 @@ is_unity_project() {
 
 
 
-echo "-- Unity Project Setup Tool for Deployment to S3 --"
+echo "-- Unity Project Setup Tool for Automated Github Action Builds & Deployment to S3 --"
 
 if is_git_repo; then
   goto_repo_root
@@ -96,10 +96,39 @@ fi
 
 DID_MAKE_CHANGES=false
 
-echo "Downloading Unity .gitignore";
-curl -s https://raw.githubusercontent.com/github/gitignore/main/Unity.gitignore > .gitignore
-echo "Downloading Unity .gitattributes";
-curl -s https://gist.githubusercontent.com/webbertakken/ff250a0d5e59a8aae961c2e509c07fbc/raw/b767c9c8762a2cf4823de43d3ec649379d8ad064/.gitattributes > .gitattributes
+if [[ -f ".gitignore" ]]; then
+  read -r -p ".gitignore already exists. Overwrite with a default one? [y/N] " answer
+  case "$answer" in
+    [Yy]* ) 
+      echo "Downloading Unity .gitignore"
+      curl -s https://raw.githubusercontent.com/github/gitignore/main/Unity.gitignore > .gitignore
+      echo "Overwrote .gitignore."
+      ;;
+    * )
+      echo "Skipping .gitignore overwrite."
+      ;;
+  esac
+else
+  curl -s https://raw.githubusercontent.com/github/gitignore/main/Unity.gitignore > .gitignore
+  echo "Created a new .gitignore."
+fi
+
+if [[ -f ".gitattributes" ]]; then
+  read -r -p ".gitattributes already exists. Overwrite with a default one? [y/N] " answer
+  case "$answer" in
+    [Yy]* )
+      echo "Downloading Unity .gitattributes"
+      curl -s https://gist.githubusercontent.com/webbertakken/ff250a0d5e59a8aae961c2e509c07fbc/raw/b767c9c8762a2cf4823de43d3ec649379d8ad064/.gitattributes > .gitattributes
+      echo "Overwrote .gitattributes."
+      ;;
+    * )
+      echo "Skipping .gitattributes overwrite."
+      ;;
+  esac
+else
+  curl -s https://gist.githubusercontent.com/webbertakken/ff250a0d5e59a8aae961c2e509c07fbc/raw/b767c9c8762a2cf4823de43d3ec649379d8ad064/.gitattributes > .gitattributes
+  echo "Created a new .gitattributes."
+fi
 
 if [[ $(git status --porcelain .gitignore .gitattributes) ]]; then 
   git add .gitignore .gitattributes 1>/dev/null
@@ -109,10 +138,44 @@ if [[ $(git status --porcelain .gitignore .gitattributes) ]]; then
 fi
 
 mkdir -p .github/workflows
-echo "Downloading Github workflow for activation"
-curl -s https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/workflows/activation.yml > .github/workflows/activation.yml
-echo "Downloading Github workflow for deploy"
-curl -s https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/workflows/build-deploy.yml > .github/workflows/build-deploy.yml
+
+# Check activation.yml
+if [[ -f ".github/workflows/activation.yml" ]]; then
+  read -r -p "activation.yml already exists. Overwrite with a default one? [y/N] " answer
+  case "$answer" in
+    [Yy]* )
+      echo "Downloading GitHub workflow for activation"
+      curl -s https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/workflows/activation.yml > .github/workflows/activation.yml
+      echo "Overwrote activation.yml."
+      ;;
+    * )
+      echo "Skipping activation.yml overwrite."
+      ;;
+  esac
+else
+  echo "Downloading GitHub workflow for activation"
+  curl -s https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/workflows/activation.yml > .github/workflows/activation.yml
+  echo "Created a new activation.yml."
+fi
+
+# Check build-deploy.yml
+if [[ -f ".github/workflows/build-deploy.yml" ]]; then
+  read -r -p "build-deploy.yml already exists. Overwrite with a default one? [y/N] " answer
+  case "$answer" in
+    [Yy]* )
+      echo "Downloading GitHub workflow for deploy"
+      curl -s https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/workflows/build-deploy.yml > .github/workflows/build-deploy.yml
+      echo "Overwrote build-deploy.yml."
+      ;;
+    * )
+      echo "Skipping build-deploy.yml overwrite."
+      ;;
+  esac
+else
+  echo "Downloading GitHub workflow for deploy"
+  curl -s https://raw.githubusercontent.com/roo-makes/unity-ci-deploy-base/main/workflows/build-deploy.yml > .github/workflows/build-deploy.yml
+  echo "Created a new build-deploy.yml."
+fi
 
 if [[ $(git status --porcelain .github/workflows) ]]; then 
   git add .github/workflows
@@ -158,7 +221,7 @@ fi
 
 if [[ "$REPO_VISIBILITY" = "private" || "$REPO_LOCATION" = "personal" ]]; then
   echo "Because this repo is not a public repo in roo-makes, you'll need to set its secrets."
-  echo "Run \"gh secret set -f [filename]\" with a file that contains the following env vars":
+  echo "This setup requires the following secrets:"
   echo "AWS_ACCESS_KEY_ID"
   echo "AWS_SECRET_ACCESS_KEY"
   echo "CLOUDFRONT_DISTRIBUTION_ID"
@@ -169,7 +232,7 @@ if [[ "$REPO_VISIBILITY" = "private" || "$REPO_LOCATION" = "personal" ]]; then
   echo "UNITY_EMAIL"
   echo "UNITY_LICENSE"
   echo "UNITY_PASSWORD"
-  echo "You can also set them individually with \"gh secret set [SECRET NAME] [SECRET VALUE]\""
+  echo "You can set them individually with \"gh secret set [SECRET NAME] [SECRET VALUE]\""
 fi
 
 if [[ "$DID_MAKE_CHANGES" == "false" && "$IS_NEW_REPO" == "false" ]]; then
