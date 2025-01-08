@@ -94,6 +94,27 @@ This script does the following for you:
 
 You may re-run this script on a repo without causing issues. This is the best way to update the Github actions if they need to change.
 
+## AWS S3/Cloudfront Setup
+
+_NOTE: You can use the same AWS credentials/bucket/cloudfront distro for as many Unity projects as you like. If somebody else has set these up for you, ask them for the values for these secrets_
+
+### Required Secrets
+
+- `AWS_ACCESS_KEY_ID`: Access key for IAM access
+- `AWS_SECRET_ACCESS_KEY`: Access secret for IAM access
+- `CLOUDFRONT_DISTRIBUTION_ID`: The ID of the cloudfront disro
+- `CLOUDFRONT_URL`: The base URL of the cloudfront distro
+- `S3_BUCKET`: The bucket we're deploying to
+- `S3_BUCKET_REGION`: The region of the bucket (eg `us-east-1`)
+
+### Setting up S3
+
+To be able to push your builds to S3, you'll need to setup a bucket in AWS. More to come.
+
+### Setting up Cloudfront
+
+To come.
+
 ### Changing or Disabling Discord notifications
 
 By default, the `build-deploy` action will update Discord if it finds a `DISCORD_WEBHOOK` secret. If you are in an org with this already set (such as `roo-makes`), you don't have to do anything.
