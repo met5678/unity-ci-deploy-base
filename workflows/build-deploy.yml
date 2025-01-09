@@ -5,7 +5,7 @@ on: push
 jobs:
   build:
     name: Build my project ✨
-    runs-on: linux-large
+    runs-on: ubuntu-latest # May need to use a larger runner for larger projects
     strategy:
       fail-fast: false
       matrix:
@@ -15,12 +15,6 @@ jobs:
           - StandaloneLinux64
           - WebGL
     steps:
-      - name: Discord Commit Notification
-        env:
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-        if: ${{ env.DISCORD_WEBHOOK != '' && env.DISCORD_WEBHOOK != 'disabled' }}
-        uses: Ilshidur/action-discord@0.3.2
-
       - name: Discord Workflow Start Notification
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}

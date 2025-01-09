@@ -3,11 +3,11 @@ on:
   workflow_dispatch: {}
 jobs:
   activation:
-    name: Request manual activation file 🔑
+    name: Request manual activation file 🔑 (Manual only, for testing license)
     runs-on: ubuntu-latest
     steps:
       # Request manual activation file
-      - name: Request manual activation file, testing only
+      - name: Unity - Activate
         id: getManualLicenseFile
         env:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
