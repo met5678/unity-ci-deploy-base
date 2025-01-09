@@ -67,67 +67,6 @@ is_unity_project() {
 
 
 
-update_build_deploy_platforms() {
-  local FILE=".github/workflows/build-deploy.yml"
-  local TEMP_FILE="$(mktemp)"
-  local FOUND_TARGET_PLATFORM=false
-  local IN_TARGET_BLOCK=false
-
-  if [[ ! -f "$FILE" ]]; then
-    echo "ERROR: $FILE does not exist. Unable to update targetPlatform."
-    echo "You may have chosen to skip overwriting it, but there's no existing file!"
-    exit 1
-  fi
-
-  echo "Updating targetPlatform in $FILE..."
-
-  while IFS= read -r line; do
-    # If we find a line containing 'targetPlatform:'
-    if [[ "$line" =~ targetPlatform: ]]; then
-      FOUND_TARGET_PLATFORM=true
-      IN_TARGET_BLOCK=true
-
-      # Write this line as-is
-      echo "$line" >> "$TEMP_FILE"
-      # Then insert our newly selected platforms immediately below it
-      echo "$PLATFORM_LINES" >> "$TEMP_FILE"
-      continue
-    fi
-
-    # If we're within the block of old platform lines, skip them
-    if $IN_TARGET_BLOCK; then
-      # If line looks like indentation + dash, it's an old platform line
-      if [[ "$line" =~ ^[[:space:]]*-[[:space:]] ]]; then
-        continue  # skip this old platform
-      else
-        # We found a line that is no longer an indented dash
-        IN_TARGET_BLOCK=false
-      fi
-    fi
-
-    # Write lines we are not skipping
-    echo "$line" >> "$TEMP_FILE"
-  done < "$FILE"
-
-  # If we never found targetPlatform, append it at the end (or wherever fits best in your YAML).
-  if ! $FOUND_TARGET_PLATFORM; then
-    echo "Didn't find 'targetPlatform:' in $FILE; appending a new matrix block."
-    cat <<EOF >> "$TEMP_FILE"
-
-strategy:
-  fail-fast: false
-  matrix:
-    targetPlatform:
-$PLATFORM_LINES
-EOF
-  fi
-
-  mv "$TEMP_FILE" "$FILE"
-  echo "Done updating $FILE."
-}
-
-
-
 echo "-- Unity Project Setup Tool for Automated Github Action Builds & Deployment to S3 --"
 
 if is_git_repo; then
@@ -244,54 +183,6 @@ if [[ $(git status --porcelain .github/workflows) ]]; then
   git commit -m "Setting up unity project with CI" 1>/dev/null
   DID_MAKE_CHANGES=true
 fi
-
-echo ""
-echo "Which platforms do you want to build? (space-separated choices)"
-echo "1) StandaloneOSX"
-echo "2) StandaloneWindows64"
-echo "3) StandaloneLinux64"
-echo "4) WebGL"
-echo ""
-echo "For example, '1 4' for Mac + WebGL, or '1 2 3 4' for all."
-
-# Keep asking until we get at least one valid platform
-while true; do
-  read -p "Enter choice(s): " choices
-  
-  # Reset platform lines each time to handle retries
-  PLATFORM_LINES=""
-  for choice in $choices; do
-    case "$choice" in
-      1) PLATFORM_LINES+=$'\n          - StandaloneOSX';;
-      2) PLATFORM_LINES+=$'\n          - StandaloneWindows64';;
-      3) PLATFORM_LINES+=$'\n          - StandaloneLinux64';;
-      4) PLATFORM_LINES+=$'\n          - WebGL';;
-      *) echo "Unknown choice: $choice (ignored)";;
-    esac
-  done
-  
-  # Require at least one valid selection
-  if [[ -n "$PLATFORM_LINES" ]]; then
-    echo "Selected platforms:"
-    echo "$PLATFORM_LINES"
-    echo ""
-    break
-  else
-    echo "No valid platforms selected. Please try again."
-    echo ""
-  fi
-done
-
-update_build_deploy_platforms
-
-# Now, if build-deploy.yml changed, commit it
-if [[ $(git status --porcelain .github/workflows/build-deploy.yml) ]]; then
-  git add .github/workflows/build-deploy.yml
-  echo "Committing updated build-deploy.yml with new target platforms"
-  git commit -m "Update build-deploy.yml with user-selected platforms"
-  DID_MAKE_CHANGES=true
-fi
-
 
 if [[ "$IS_NEW_REPO" == "true" ]]; then
   git add .
