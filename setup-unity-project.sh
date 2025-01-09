@@ -273,34 +273,34 @@ while true; do
     case "$choice" in
       1)
         if [ -z "$PLATFORM_LINES" ]; then
-          PLATFORM_LINES="\t\t\t\t\t- StandaloneOSX"
+          PLATFORM_LINES="        - StandaloneOSX"
         else
           PLATFORM_LINES="$PLATFORM_LINES
-\t\t\t\t\t- StandaloneOSX"
+        - StandaloneOSX"
         fi
         ;;
       2)
         if [ -z "$PLATFORM_LINES" ]; then
-          PLATFORM_LINES="\t\t\t\t\t- StandaloneWindows64"
+          PLATFORM_LINES="        - StandaloneWindows64"
         else
           PLATFORM_LINES="$PLATFORM_LINES
-\t\t\t\t\t- StandaloneWindows64"
+        - StandaloneWindows64"
         fi
         ;;
       3)
         if [ -z "$PLATFORM_LINES" ]; then
-          PLATFORM_LINES="\t\t\t\t\t- StandaloneLinux64"
+          PLATFORM_LINES="        - StandaloneLinux64"
         else
           PLATFORM_LINES="$PLATFORM_LINES
-\t\t\t\t\t- StandaloneLinux64"
+        - StandaloneLinux64"
         fi
         ;;
       4)
         if [ -z "$PLATFORM_LINES" ]; then
-          PLATFORM_LINES="\t\t\t\t\t- WebGL"
+          PLATFORM_LINES="        - WebGL"
         else
           PLATFORM_LINES="$PLATFORM_LINES
-\t\t\t\t\t- WebGL"
+        - WebGL"
         fi
         ;;
       *)
