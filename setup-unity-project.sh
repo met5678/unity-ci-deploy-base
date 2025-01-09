@@ -69,48 +69,47 @@ is_unity_project() {
 
 update_build_deploy_platforms() {
   local FILE=".github/workflows/build-deploy.yml"
-  local TEMP_FILE
-  TEMP_FILE="$(mktemp)"
-
+  local TEMP_FILE="$(mktemp)"
   local FOUND_TARGET_PLATFORM=false
   local IN_TARGET_BLOCK=false
 
   if [[ ! -f "$FILE" ]]; then
-    echo "ERROR: $FILE does not exist. Cannot update targetPlatform."
+    echo "ERROR: $FILE does not exist. Unable to update targetPlatform."
+    echo "You may have chosen to skip overwriting it, but there's no existing file!"
     exit 1
   fi
 
   echo "Updating targetPlatform in $FILE..."
 
   while IFS= read -r line; do
-    # Detect the line with 'targetPlatform:'
+    # If we find a line containing 'targetPlatform:'
     if [[ "$line" =~ targetPlatform: ]]; then
       FOUND_TARGET_PLATFORM=true
       IN_TARGET_BLOCK=true
 
-      # Write the 'targetPlatform:' line as-is
+      # Write this line as-is
       echo "$line" >> "$TEMP_FILE"
-      # Immediately write the user-chosen platforms (no extra newline before them)
+      # Then insert our newly selected platforms immediately below it
       echo "$PLATFORM_LINES" >> "$TEMP_FILE"
       continue
     fi
 
-    # If we are in the old targetPlatform block, skip lines that look like '- Something'
+    # If we're within the block of old platform lines, skip them
     if $IN_TARGET_BLOCK; then
+      # If line looks like indentation + dash, it's an old platform line
       if [[ "$line" =~ ^[[:space:]]*-[[:space:]] ]]; then
-        # This is an old platform line; skip it
-        continue
+        continue  # skip this old platform
       else
-        # We've reached a line that isn't an indented dash, so we're out of the block
+        # We found a line that is no longer an indented dash
         IN_TARGET_BLOCK=false
       fi
     fi
 
-    # Write any lines we are not skipping
+    # Write lines we are not skipping
     echo "$line" >> "$TEMP_FILE"
   done < "$FILE"
 
-  # If we never found targetPlatform, append it at the end
+  # If we never found targetPlatform, append it at the end (or wherever fits best in your YAML).
   if ! $FOUND_TARGET_PLATFORM; then
     echo "Didn't find 'targetPlatform:' in $FILE; appending a new matrix block."
     cat <<EOF >> "$TEMP_FILE"
@@ -126,7 +125,6 @@ EOF
   mv "$TEMP_FILE" "$FILE"
   echo "Done updating $FILE."
 }
-
 
 
 
@@ -247,72 +245,42 @@ if [[ $(git status --porcelain .github/workflows) ]]; then
   DID_MAKE_CHANGES=true
 fi
 
+echo ""
+echo "Which platforms do you want to build? (space-separated choices)"
+echo "1) StandaloneOSX"
+echo "2) StandaloneWindows64"
+echo "3) StandaloneLinux64"
+echo "4) WebGL"
+echo ""
+echo "For example, '1 4' for Mac + WebGL, or '1 2 3 4' for all."
+
 # Keep asking until we get at least one valid platform
 while true; do
-  echo ""
-  echo "Which platforms do you want to build? (space-separated choices)"
-  echo "1) StandaloneOSX"
-  echo "2) StandaloneWindows64"
-  echo "3) StandaloneLinux64"
-  echo "4) WebGL"
-  echo ""
-  echo "For example, '1 4' for Mac + WebGL, or '1 2 3 4' for all."
   read -p "Enter choice(s): " choices
-
-  # Start with an empty string.
-  # We only add leading newlines when we add subsequent platforms.
+  
+  # Reset platform lines each time to handle retries
   PLATFORM_LINES=""
-
   for choice in $choices; do
     case "$choice" in
-      1)
-        if [ -z "$PLATFORM_LINES" ]; then
-          PLATFORM_LINES="            - StandaloneOSX"
-        else
-          PLATFORM_LINES="$PLATFORM_LINES
-            - StandaloneOSX"
-        fi
-        ;;
-      2)
-        if [ -z "$PLATFORM_LINES" ]; then
-          PLATFORM_LINES="            - StandaloneWindows64"
-        else
-          PLATFORM_LINES="$PLATFORM_LINES
-            - StandaloneWindows64"
-        fi
-        ;;
-      3)
-        if [ -z "$PLATFORM_LINES" ]; then
-          PLATFORM_LINES="            - StandaloneLinux64"
-        else
-          PLATFORM_LINES="$PLATFORM_LINES
-            - StandaloneLinux64"
-        fi
-        ;;
-      4)
-        if [ -z "$PLATFORM_LINES" ]; then
-          PLATFORM_LINES="            - WebGL"
-        else
-          PLATFORM_LINES="$PLATFORM_LINES
-            - WebGL"
-        fi
-        ;;
-      *)
-        echo "Unknown choice: $choice (ignored)";;
+      1) PLATFORM_LINES+=$'\n          - StandaloneOSX';;
+      2) PLATFORM_LINES+=$'\n          - StandaloneWindows64';;
+      3) PLATFORM_LINES+=$'\n          - StandaloneLinux64';;
+      4) PLATFORM_LINES+=$'\n          - WebGL';;
+      *) echo "Unknown choice: $choice (ignored)";;
     esac
   done
-
-  if [[ -z "$PLATFORM_LINES" ]]; then
-    echo "No valid platforms selected. Please try again."
-  else
-    echo ""
+  
+  # Require at least one valid selection
+  if [[ -n "$PLATFORM_LINES" ]]; then
     echo "Selected platforms:"
     echo "$PLATFORM_LINES"
     echo ""
     break
+  else
+    echo "No valid platforms selected. Please try again."
+    echo ""
   fi
 done
-
 
 update_build_deploy_platforms
 
