@@ -83,41 +83,34 @@ update_build_deploy_platforms() {
   echo "Updating targetPlatform in $FILE..."
 
   while IFS= read -r line; do
-
-    # If we encounter the targetPlatform line, mark it and write it out
+    # Detect the line with 'targetPlatform:'
     if [[ "$line" =~ targetPlatform: ]]; then
       FOUND_TARGET_PLATFORM=true
       IN_TARGET_BLOCK=true
 
+      # Write the 'targetPlatform:' line as-is
       echo "$line" >> "$TEMP_FILE"
-      # Immediately inject the newly selected lines
+      # Immediately write the user-chosen platforms (no extra newline before them)
       echo "$PLATFORM_LINES" >> "$TEMP_FILE"
       continue
     fi
 
-    # If we're in the block, skip old platforms and skip empty lines
+    # If we are in the old targetPlatform block, skip lines that look like '- Something'
     if $IN_TARGET_BLOCK; then
-      # Skip lines like '        - Something'
       if [[ "$line" =~ ^[[:space:]]*-[[:space:]] ]]; then
+        # This is an old platform line; skip it
         continue
+      else
+        # We've reached a line that isn't an indented dash, so we're out of the block
+        IN_TARGET_BLOCK=false
       fi
-
-      # Also skip purely empty lines to avoid double-blank lines
-      if [[ -z "${line// }" ]]; then
-        # If it's blank or all whitespace, skip it
-        continue
-      fi
-
-      # If we hit a line that doesn't match the dash pattern or blank,
-      # that means we're out of the targetPlatform block.
-      IN_TARGET_BLOCK=false
     fi
 
-    # Write out lines that aren't skipped
+    # Write any lines we are not skipping
     echo "$line" >> "$TEMP_FILE"
   done < "$FILE"
 
-  # If we never found targetPlatform, append a new section
+  # If we never found targetPlatform, append it at the end
   if ! $FOUND_TARGET_PLATFORM; then
     echo "Didn't find 'targetPlatform:' in $FILE; appending a new matrix block."
     cat <<EOF >> "$TEMP_FILE"
@@ -133,7 +126,6 @@ EOF
   mv "$TEMP_FILE" "$FILE"
   echo "Done updating $FILE."
 }
-
 
 
 
@@ -265,42 +257,44 @@ while true; do
   echo "4) WebGL"
   echo ""
   echo "For example, '1 4' for Mac + WebGL, or '1 2 3 4' for all."
-
   read -p "Enter choice(s): " choices
 
+  # Start with an empty string.
+  # We only add leading newlines when we add subsequent platforms.
   PLATFORM_LINES=""
+
   for choice in $choices; do
     case "$choice" in
       1)
         if [ -z "$PLATFORM_LINES" ]; then
-          PLATFORM_LINES="        - StandaloneOSX"
+          PLATFORM_LINES="            - StandaloneOSX"
         else
           PLATFORM_LINES="$PLATFORM_LINES
-        - StandaloneOSX"
+            - StandaloneOSX"
         fi
         ;;
       2)
         if [ -z "$PLATFORM_LINES" ]; then
-          PLATFORM_LINES="        - StandaloneWindows64"
+          PLATFORM_LINES="            - StandaloneWindows64"
         else
           PLATFORM_LINES="$PLATFORM_LINES
-        - StandaloneWindows64"
+            - StandaloneWindows64"
         fi
         ;;
       3)
         if [ -z "$PLATFORM_LINES" ]; then
-          PLATFORM_LINES="        - StandaloneLinux64"
+          PLATFORM_LINES="            - StandaloneLinux64"
         else
           PLATFORM_LINES="$PLATFORM_LINES
-        - StandaloneLinux64"
+            - StandaloneLinux64"
         fi
         ;;
       4)
         if [ -z "$PLATFORM_LINES" ]; then
-          PLATFORM_LINES="        - WebGL"
+          PLATFORM_LINES="            - WebGL"
         else
           PLATFORM_LINES="$PLATFORM_LINES
-        - WebGL"
+            - WebGL"
         fi
         ;;
       *)
@@ -318,7 +312,6 @@ while true; do
     break
   fi
 done
-
 
 
 update_build_deploy_platforms
